@@ -6,7 +6,7 @@ import Hero from '../components/Hero';
 import VillaCard from '../components/VillaCard';
 import Footer from '../components/Footer';
 import { Villa } from '../types/index';
-import { getAllVillas } from '../../services/villa.service';
+import { getAllVillas } from '../services/villa.service';
 
 export default function Home() {
   const [villas, setVillas] = useState<Villa[]>([]);

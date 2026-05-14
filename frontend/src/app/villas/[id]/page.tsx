@@ -1,15 +1,43 @@
 // src/app/villas/[id]/page.tsx
 'use client';
-
+import { createReservation } from '../../../services/reservation.service'; 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Navbar from '../../../components/Navbar';
 import Footer from '../../../components/Footer';
 import { Villa } from '../../../types/index';
-import { getVillaById } from '../../../../services/villa.service';
+import { getVillaById } from '../../../services/villa.service';
 import Image from 'next/image';
 
 export default function VillaDetailPage() {
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [isBooking, setIsBooking] = useState(false);
+  const handleReservation = async () => {
+    if (!startDate || !endDate) {
+      alert("Lütfen giriş ve çıkış tarihlerini seçin.");
+      return;
+    }
+  const token = localStorage.getItem('token');
+    if (!token) {
+      alert("Rezervasyon yapabilmek için giriş yapmalısınız.");
+      return;
+    }
+    try {
+      setIsBooking(true);
+      await createReservation({
+        villaId: id as string,
+        startDate: startDate,
+        endDate: endDate,
+      });
+      alert("Rezervasyon talebiniz başarıyla oluşturuldu! Müşterimiz en kısa sürede sizinle iletişime geçecektir.");
+    } catch (error) {
+      console.error("Rezervasyon yapılırken hata:", error);
+      alert("Rezervasyon yapılırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+    } finally {
+      setIsBooking(false);
+    }
+  }
   const { id } = useParams();
   const [villa, setVilla] = useState<Villa | null>(null);
   const [loading, setLoading] = useState(true);
@@ -155,29 +183,56 @@ export default function VillaDetailPage() {
                 </div>
                 <div className="rounded-lg bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">Müsait</div>
               </div>
-
               <div className="mb-8 space-y-4">
-                 <div className="group rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-all hover:border-blue-200 hover:bg-white cursor-pointer">
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">Tarih Seçimi</label>
-                    <div className="mt-1 flex items-center justify-between font-bold text-slate-800">
-                      <span>Takvimi Görüntüle</span>
-                      <span className="text-blue-500">📅</span>
+                 {/* Giriş ve Çıkış Tarihleri */}
+                 <div className="grid grid-cols-2 gap-3">
+                    <div className="group rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-all focus-within:border-blue-200 focus-within:bg-white">
+                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">Giriş</label>
+                       <input 
+                         type="date"
+                         required
+                         className="mt-1 w-full bg-transparent p-0 font-bold text-slate-800 outline-none cursor-pointer"
+                         value={startDate}
+                         onChange={(e) => setStartDate(e.target.value)}
+                       />
+                    </div>
+                    <div className="group rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-all focus-within:border-blue-200 focus-within:bg-white">
+                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">Çıkış</label>
+                       <input 
+                         type="date"
+                         required
+                         className="mt-1 w-full bg-transparent p-0 font-bold text-slate-800 outline-none cursor-pointer"
+                         value={endDate}
+                         onChange={(e) => setEndDate(e.target.value)}
+                       />
                     </div>
                  </div>
-                 <div className="group rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-all hover:border-blue-200 hover:bg-white">
+
+                 {/* Kişi Sayısı Seçimi */}
+                 <div className="group rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-all focus-within:border-blue-200 focus-within:bg-white">
                     <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">Kişi Sayısı</label>
-                    <select className="mt-1 w-full bg-transparent p-0 font-bold text-slate-800 focus:ring-0 border-none appearance-none cursor-pointer">
-                       {[...Array(villa.capacity)].map((_, i) => (
-                         <option key={i} value={i+1}>{i+1} Misafir</option>
+                    <select className="mt-1 w-full bg-transparent p-0 font-bold text-slate-800 focus:ring-0 border-none appearance-none cursor-pointer outline-none">
+                       {villa?.capacity && [...Array(villa.capacity)].map((_, i) => (
+                         <option key={i} value={i + 1}>{i + 1} Misafir</option>
                        ))}
                     </select>
                  </div>
               </div>
 
-              <button className="w-full rounded-2xl bg-blue-600 py-5 text-lg font-bold text-white shadow-xl shadow-blue-100 transition-all hover:bg-blue-700 active:scale-[0.98]">
-                Rezervasyon Talebi Oluştur
+              {/* Rezervasyon Butonu */}
+              <button 
+                onClick={handleReservation}
+                disabled={isBooking}
+                className={`w-full rounded-2xl py-5 text-lg font-black shadow-xl transition-all active:scale-[0.98] ${
+                  isBooking 
+                    ? 'bg-slate-400 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-100'
+                }`}
+              >
+                {isBooking ? 'Talebiniz İletiliyor...' : 'Rezervasyon Talebi Oluştur'}
               </button>
               
+              {/* Fiyat Bilgisi ve Tahmini Toplam */}
               <div className="mt-6 space-y-3">
                  <div className="flex justify-between text-sm font-medium text-slate-500">
                     <span>Hizmet Bedeli</span>
@@ -185,7 +240,7 @@ export default function VillaDetailPage() {
                  </div>
                  <div className="flex justify-between border-t border-slate-50 pt-3 text-lg font-bold text-slate-900">
                     <span>Toplam (Tahmini)</span>
-                    <span>₺{villa.pricePerNight.toLocaleString('tr-TR')}</span>
+                    <span>₺{villa?.pricePerNight?.toLocaleString('tr-TR')}</span>
                  </div>
               </div>
               
