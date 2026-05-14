@@ -1,3 +1,4 @@
+import { ReservationStatus } from '@prisma/client';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -66,7 +67,7 @@ export class ReservationsService {
         villaId,
       },
     });
-  } // <--- createReservation burada düzgünce kapandı
+  }
 
   async cancelReservation(userId: string, reservationId: string) {
     const reservation = await this.prisma.reservation.findUnique({
@@ -84,6 +85,37 @@ export class ReservationsService {
     return this.prisma.reservation.update({
       where: { id: reservationId },
       data: { status: 'CANCELLED' },
+    });
+  }
+
+  // --- BURADAN SONRASI YENİ EKLENDİ (Admin İçin) ---
+
+  // Sistemdeki tüm rezervasyonları villalarıyla birlikte getirir
+  async findAll() {
+    return this.prisma.reservation.findMany({
+      include: {
+        villa: true,
+        // user: true, // Eğer kullanıcı adını da tabloda göstermek istersen burayı açabilirsin
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  // Adminin rezervasyon durumunu değiştirmesini sağlar (Onayla/İptal Et/Talep Olarak Bırak)
+  async updateStatus(id: string, status: ReservationStatus) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id },
+    });
+
+    if (!reservation) {
+      throw new BadRequestException('Güncellenmek istenen rezervasyon bulunamadı.');
+    }
+
+    return this.prisma.reservation.update({
+      where: { id },
+      data: { status },
     });
   }
 }
