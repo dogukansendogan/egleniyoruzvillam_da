@@ -104,7 +104,7 @@ export class ReservationsService {
   }
 
   // Adminin rezervasyon durumunu değiştirmesini sağlar (Onayla/İptal Et/Talep Olarak Bırak)
-  async updateStatus(id: string, status: ReservationStatus) {
+  async updateStatus(id: string, status: String) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
     });
@@ -115,7 +115,8 @@ export class ReservationsService {
 
     return this.prisma.reservation.update({
       where: { id },
-      data: { status },
+      data: { 
+        status: status as ReservationStatus},
     });
   }
 }
