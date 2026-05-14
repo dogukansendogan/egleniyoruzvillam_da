@@ -1,0 +1,73 @@
+// 1. İstemci ve Veritabanı Ayarları
+//dddçakışma önleme mantığı kuruyoruz 
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 2. Enum'lar (Sabit Değerler)
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ReservationStatus {
+  REQUESTED   // Kullanıcı talebi oluşturdu
+  PRE_BOOKED  // Admin onay verdi, geçici bloklandı
+  PENDING     // Dekont yüklendi, onay bekleniyor
+  CONFIRMED   // Ödeme doğrulandı, kesinleşti
+  CANCELLED   // İptal edildi (Örn: Cron Job ile süresi doldu)
+}
+
+// 3. Kullanıcı Tablosu
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  password     String        // Şifrelenmiş (Hashed) olarak tutulacak
+  fullName     String
+  role         Role          @default(USER)
+  reservations Reservation[]
+  
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+// 4. Villa Tablosu
+model Villa {
+  id            String        @id @default(uuid())
+  name          String
+  description   String?
+  pricePerNight Float
+  isActive      Boolean       @default(true)
+  reservations  Reservation[]
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+// 5. Rezervasyon Tablosu (Sistemin Kalbi)
+model Reservation {
+  id           String            @id @default(uuid())
+  startDate    DateTime          // Giriş tarihi
+  endDate      DateTime          // Çıkış tarihi
+  totalPrice   Float             // Dinamik hesaplanan toplam fiyat
+  status       ReservationStatus @default(REQUESTED)
+  receiptUrl   String?           // AWS S3 / Firebase dekont bağlantısı
+  
+  // İlişkiler
+  userId       String
+  user         User              @relation(fields: [userId], references: [id])
+  
+  villaId      String
+  villa        Villa             @relation(fields: [villaId], references: [id])
+  
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Çakışma önleme için hızlı sorgu indeksleri
+  @@index([startDate, endDate])
+  @@index([villaId, status])
+}
