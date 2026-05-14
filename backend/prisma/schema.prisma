@@ -37,15 +37,21 @@ model User {
 
 // 4. Villa Tablosu
 model Villa {
-  id            String        @id @default(uuid())
+  id            String   @id @default(uuid())
   name          String
   description   String?
+  location      String    @default("Belirtilmemiş") // Frontend'de arama yaparken lazım
+  imageUrl      String?   @default("https://via.placeholder.com/800") // Kartlarda resmi göstermek için
   pricePerNight Float
-  isActive      Boolean       @default(true)
+  bedrooms      Int       @default(1) // Karttaki ikonlar için
+  bathrooms     Int       @default(1)
+  capacity      Int       @default(2) // Misafir sayısı filtresi için
+  features      String[] @default([]) // İşte hatayı çözen ve dizi (array) olan o alan
+  isActive      Boolean   @default(true)
   reservations  Reservation[]
   
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 // 5. Rezervasyon Tablosu (Sistemin Kalbi)
