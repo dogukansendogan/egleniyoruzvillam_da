@@ -64,3 +64,13 @@ export async function getFilteredVillas(params: {
     return [];
   }
 }
+export async function getVillaById(id: string): Promise<Villa | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/villas/${id}`, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (error) {
+    console.error("Villa getirme hatası:", error);
+    return null;
+  }
+}
