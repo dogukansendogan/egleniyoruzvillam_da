@@ -73,4 +73,28 @@ export async function getVillaById(id: string): Promise<Villa | null> {
     console.error("Villa getirme hatası:", error);
     return null;
   }
+}/**
+ * Yeni bir villa oluşturmak için kullanılır.
+ * Admin panelindeki form verilerini backend'e gönderir.
+ */
+export async function createVilla(villaData: any): Promise<Villa> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/villas`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(villaData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Villa kaydedilirken bir hata oluştu');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("createVilla API Hatası:", error);
+    throw error;
+  }
 }

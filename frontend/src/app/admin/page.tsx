@@ -1,9 +1,9 @@
-// frontend/src/app/admin/page.tsx (Güncellenmiş İçerik)
 'use client';
 
 import { useState } from 'react';
 import Navbar from '../../components/Navbar';
-
+// Servis importunu eklemeyi unutma
+import { createVilla } from '../../../services/villa.service';
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('villas');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -32,12 +32,20 @@ export default function AdminDashboard() {
     }));
   };
 
+  // Hata Düzeltme: handleSubmit artık asenkron ve gerçek API isteği atıyor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Gönderilecek Veri:", formData);
-    // Burada backend/villas POST isteği atılacak
-    alert("Villa başarıyla kaydedildi! (Backend bağlantısı sıradaki adım)");
-    setShowAddForm(false);
+    try {
+      console.log("Gönderilecek Veri:", formData);
+      await createVilla(formData);
+      alert("Villa başarıyla kaydedildi! 🚀");
+      setShowAddForm(false);
+      // Kayıttan sonra listeyi yenilemek için sayfayı reload yapabiliriz
+      window.location.reload();
+    } catch (error) {
+      console.error("Hata:", error);
+      alert("Villa kaydedilirken bir hata oluştu.");
+    }
   };
 
   return (
@@ -151,7 +159,6 @@ export default function AdminDashboard() {
                 </form>
               </div>
             ) : (
-              // Mevcut Villa Listesi (Önceki kodun devamı)
               <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-100">
                 <div className="flex justify-between items-center mb-8">
                   <h2 className="text-2xl font-bold text-slate-900">Mevcut Villalar</h2>
@@ -162,7 +169,6 @@ export default function AdminDashboard() {
                     + Yeni Villa Ekle
                   </button>
                 </div>
-                {/* Liste Tablosu Buraya Gelecek */}
                 <p className="text-slate-400 text-center py-10 font-medium tracking-tight">Henüz bir villa eklenmemiş veya liste yükleniyor...</p>
               </div>
             )}
