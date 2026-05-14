@@ -29,7 +29,7 @@ export class VillasService {
     return this.prisma.villa.create({
       data: {
         name: data.name,
-        description: data.description,
+        description: data.description|| "Harika bir tatil villası.",
         location: data.location,
         pricePerNight: parseFloat(data.pricePerNight),
         capacity: data.capacity || 2,
