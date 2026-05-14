@@ -12,7 +12,7 @@ import { PassportModule } from '@nestjs/passport'; // 2. Güvenlik için bunu da
     PassportModule, // 3. Passport entegrasyonu
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET || 'super-gizli-villa-key-2026', 
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' },
     }),
   ],
